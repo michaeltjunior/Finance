@@ -79,7 +79,7 @@ select conta, 0 as saldo, 00 as saldo_aplicacao, sum(credito), sum(debito) from 
 group by conta;
 
 /* saldos finais por mês */
-select conta, to_char(date_trunc('month', data),'MM/YYYY' ) as mes, saldo , saldo_aplicacao
+select conta, to_char(date_trunc('month', data),'MM/YYYY' ) as mes, saldo , saldo_aplicacao, saldo + saldo_aplicacao as saldo_total
 from finance.vw_extrato e 
 where conta||'-'||seq = (select conta||'-'||max(seq) 
 							from finance.vw_extrato ee 
