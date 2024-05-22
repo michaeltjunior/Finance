@@ -1,5 +1,26 @@
+create sequence finance.seq_extrato;
 create sequence finance.seq_tipos;
 create sequence finance.seq_categorias;
+
+CREATE TABLE finance.extrato (
+	"data" date NULL,
+	tipo varchar(100) NULL,
+	historico varchar(256) NULL,
+	credito numeric NULL,
+	debito numeric NULL,
+	saldo numeric NULL,
+	categoria varchar(100) NULL,
+	situacao varchar(30) NULL,
+	seq int4 NOT NULL DEFAULT nextval('finance.seq_extrato'::regclass),
+	periodo date NULL,
+	conta varchar(100) NOT NULL,
+	saldo_aplicacao numeric NULL,
+	seq_dia integer,
+	CONSTRAINT extrato_pkey PRIMARY KEY (seq, conta)
+);
+CREATE INDEX extrato_ix1 ON finance.extrato USING btree (conta);
+CREATE INDEX extrato_ix2 ON finance.extrato USING btree (data);
+CREATE INDEX extrato_ix3 ON finance.extrato USING btree (situacao);
 
 create table finance.tipos
 (seq integer default nextval('finance.seq_tipos'::regclass),
@@ -9,7 +30,7 @@ create table finance.categorias
 (seq integer default nextval('finance.seq_categorias'::regclass),
 categoria text);
 
-create view finance.vw_extrato as select * from finance.extrato order by conta, data, seq, situacao desc;
+create or replace view finance.vw_extrato as select * from finance.extrato order by conta, data, seq, situacao desc;
 grant all on finance.vw_extrato to public;
 grant all on finance.tipos to public;
 grant all on finance.categorias to public;
@@ -61,9 +82,29 @@ insert into finance.categorias (categoria) values ('Transporte');
 insert into finance.categorias (categoria) values ('Vestuário');
 insert into finance.categorias (categoria) values ('Saldo anterior');
 
+CREATE OR REPLACE VIEW finance.vw_extrato
+AS SELECT extrato.data,
+    extrato.tipo,
+    extrato.historico,
+    extrato.credito,
+    extrato.debito,
+    extrato.saldo,
+    extrato.categoria,
+    extrato.situacao,
+    extrato.seq,
+    extrato.periodo,
+    extrato.conta,
+    extrato.saldo_aplicacao
+   FROM finance.extrato
+  ORDER BY extrato.conta, extrato.data, extrato.seq, extrato.situacao DESC;
+ 
 select * from finance.vw_extrato where data = '2024-05-31';
 select * from finance.tipos;
 select * from finance.categorias;
+
+CREATE INDEX extrato_ix1 ON finance.extrato (conta);
+CREATE INDEX extrato_ix2 ON finance.extrato (data);
+CREATE INDEX extrato_ix3 ON finance.extrato (situacao);
 
 /* saldos atuais das contas */
 select conta, saldo, saldo_aplicacao from finance.extrato e where seq = (select max(seq) from finance.extrato ee where ee.conta = e.conta and situacao = 'Realizado');
@@ -115,18 +156,28 @@ DECLARE
 	cursorSaldos CURSOR FOR SELECT seq, saldo, saldo_aplicacao 
 							from finance.vw_extrato e 
 							where conta = new.conta 
-							and seq = (select max(seq) from finance.vw_extrato ee where ee.conta = e.conta and situacao = 'Realizado' and data < new.data);
+							and seq = (select max(seq) from finance.vw_extrato ee where ee.conta = e.conta /*and situacao = 'Realizado'*/ and data = new.data);
 	nSeq 		integer;
 	nSaldo 		numeric;
 	nSaldoApl 	numeric;
 	nNovaSeq	integer;
 
+	cursorSeqDia cursor for select coalesce(max(seq_dia), 0)+1 as seq_dia from finance.extrato e where conta = new.conta and data = new.data;
+
 	x 			RECORD;
+	nSeqDia		integer;
 begin
+	/* obter a sequencia do dia */
+	open cursorSeqDia;
+	fetch cursorSeqDia into nSeqDia;
+	close cursorSeqDia;
+
+	new.seq_dia = nSeqDia;
+
 	/* PREVER MOVIMENTAÇÃO DE APLICAÇÃO FINANCEIRA */
     OPEN cursorSaldos;
     FETCH cursorSaldos INTO nSeq, nSaldo, nSaldoApl;
-    
+	    
     IF FOUND THEN
 		new.saldo = nSaldo + new.credito - abs(new.debito);
 	else
@@ -147,8 +198,13 @@ CREATE OR REPLACE FUNCTION finance.fn_apos_insere_mov()
 	LANGUAGE plpgsql
 AS 
 $function$
+declare 
+	x record;
 begin
 	/* PREVER MOVIMENTAÇÃO DE APLICAÇÃO FINANCEIRA */
+--	for x in select seq , data, conta from finance.vw_extrato e where e.conta = new.conta and data > new.data loop 
+--		update finance.extrato set saldo = saldo + new.credito - abs(new.debito) where seq = x.seq;
+--	end loop;				
 	update finance.extrato set saldo = saldo + new.credito - abs(new.debito) where conta = new.conta and data > new.data;
 
     RETURN NEW;
@@ -174,11 +230,34 @@ $function$;
 create trigger extrato_apos_delete after delete on finance.extrato for each row execute function finance.fn_apos_delete_mov();  
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------   
-    
+CREATE OR REPLACE FUNCTION finance.fn_apos_update_mov()
+	RETURNS trigger
+	LANGUAGE plpgsql
+AS 
+$function$
+declare 
+	x record;
+begin
+	if (new.situacao <> old.situacao) then 
+		/* mudou a situação - registro foi efetivado */
+		/* regra: registro já efetivado não pode ser alterado para previsto novamente (deve ser excluído e programado de novo neste caso) */
+		for x in select seq , data, conta from finance.vw_extrato e where e.conta = new.conta and data > new.data loop 
+			update finance.extrato set saldo = saldo + new.credito - abs(new.debito) where seq = x.seq;
+		end loop;				
+		--update finance.extrato set saldo = saldo + new.credito - abs(new.debito) where conta = new.conta and data > new.data;
+	end if;
+
+    RETURN NEW;
+END;
+$function$;
+--
+create trigger extrato_apos_update after update on finance.extrato for each row execute function finance.fn_apos_update_mov();  
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------   
 
 
 select * from finance.extrato where seq = 1532;
---delete from finance.extrato where seq = 1532;
+--delete from finance.extrato where seq = 1536;
 
 -- INSERT DE TESTE
 insert into finance.extrato 
@@ -186,5 +265,82 @@ insert into finance.extrato
 values 
 (current_date, 'Cartão débito', 'Teste', 0, -10, 'Mercados', 'Realizado', '2024-05-01', 'Bradesco');
 
-select * from finance.vw_extrato where periodo = '2024-05-01';
+insert into finance.extrato 
+(data, tipo, historico, credito, debito, categoria, situacao, periodo, conta) 
+values 
+('2024-05-31', 'Saque', 'Dentista Igor', 0, -90, 'Saúde', 'Previsto', '2024-05-01', 'Bradesco');
+
+update finance.extrato set situacao = 'Realizado' , data ='2024-05-21' where seq = 1256;
+
+select * from finance.vw_extrato where periodo = '2024-05-01' and conta = 'Inter';
+select * from finance.vw_extrato where periodo = '2024-05-01' and conta = 'Bradesco';
+select * from finance.vw_extrato where conta = 'Inter';
+select * from finance.vw_extrato where conta = 'Bradesco';
+
+
+/* RECUPERAÇÃO DOS SALDOS EM CASO DE PERDA DE INTEGRIDADE */
+do
+$$
+declare
+	x 			record;
+	nSaldoAtual numeric;
+	vConta 		text;
+	dData 		date;
+	nSeqDia		integer;
+begin
+	dData = '2000-01-01';
+	nSeqDia = 0;
+
+	vConta = 'Bradesco';
+	nSaldoAtual = 23783.03;  -- bradesco	
+
+--	vConta = 'Inter';
+--	nSaldoAtual = 0;  -- inter
+	
+	for x in select * from finance.vw_extrato ve where conta = vConta loop
+		if (x.data <> dData) then 
+			/* mudou a data */
+			nSeqDia = 1;
+			dData = x.data;
+		else 	
+			/* segue na mesma data */
+			nSeqDia = nSeqDia + 1;
+		end if;
+	
+		if(x.situacao = 'Previsto') then
+			nSeqDia = null;
+		end if;
+
+		if(x.categoria <> 'Rendimentos') then
+			nSaldoAtual = nSaldoAtual + x.credito - abs(x.debito);	
+		
+			update finance.extrato set saldo = nSaldoAtual, seq_dia = nSeqDia where seq = x.seq;
+		else
+			if(vConta = 'Bradesco') then
+				nSaldoAtual = nSaldoAtual + x.credito - abs(x.debito);
+			
+				update finance.extrato set saldo = nSaldoAtual, seq_dia = nSeqDia where seq = x.seq;
+			else
+				update finance.extrato set saldo = nSaldoAtual , seq_dia = nSeqDia where seq = x.seq;
+			end if;
+		end if;
+	end loop;	
+
+	commit;
+end;
+$$
+language plpgsql;
+
+
+create or replace procedure finance.atualiza_saldo(iConta text, iDataInicial date)
+as 
+$$
+declare 
+	x record;
+begin 
+	for x in select max(seq)
+end;
+$$
+language plpgsql;
+
 
