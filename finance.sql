@@ -30,7 +30,7 @@ create table finance.categorias
 (seq integer default nextval('finance.seq_categorias'::regclass),
 categoria text);
 
-create or replace view finance.vw_extrato as select * from finance.extrato order by conta, data, seq, situacao desc;
+create or replace view finance.vw_extrato as select * from finance.extrato order by conta, data, seq_dia, seq, situacao desc;
 grant all on finance.vw_extrato to public;
 grant all on finance.tipos to public;
 grant all on finance.categorias to public;
@@ -147,7 +147,7 @@ where conta||'-'||seq = (select conta||'-'||max(seq)
 					
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------   
-CREATE OR REPLACE FUNCTION finance.fn_antes_insere_mov()
+CREATE OR REPLACE FUNCTION finance.fn_antes_insere_mov()	-- OK - validada
 	RETURNS trigger
 	LANGUAGE plpgsql
 AS 
@@ -193,7 +193,7 @@ $function$;
 create trigger extrato_antes_insere before insert on finance.extrato for each row execute function finance.fn_antes_insere_mov();  
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------   
-CREATE OR REPLACE FUNCTION finance.fn_apos_insere_mov()
+CREATE OR REPLACE FUNCTION finance.fn_apos_insere_mov()	-- testar
 	RETURNS trigger
 	LANGUAGE plpgsql
 AS 
@@ -202,10 +202,11 @@ declare
 	x record;
 begin
 	/* PREVER MOVIMENTAÇÃO DE APLICAÇÃO FINANCEIRA */
---	for x in select seq , data, conta from finance.vw_extrato e where e.conta = new.conta and data > new.data loop 
---		update finance.extrato set saldo = saldo + new.credito - abs(new.debito) where seq = x.seq;
---	end loop;				
-	update finance.extrato set saldo = saldo + new.credito - abs(new.debito) where conta = new.conta and data > new.data;
+	for x in select seq , data, conta from finance.vw_extrato e where e.conta = new.conta and data > new.data loop 
+		update finance.extrato set saldo = saldo + new.credito - abs(new.debito) where seq = x.seq;
+	end loop;				
+
+--	update finance.extrato set saldo = saldo + new.credito - abs(new.debito) where conta = new.conta and data > new.data;
 
     RETURN NEW;
 END;
@@ -214,7 +215,7 @@ $function$;
 create trigger extrato_apos_insere after insert on finance.extrato for each row execute function finance.fn_apos_insere_mov();  
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------   
-CREATE OR REPLACE FUNCTION finance.fn_apos_delete_mov()
+CREATE OR REPLACE FUNCTION finance.fn_apos_delete_mov()		-- refazer
 	RETURNS trigger
 	LANGUAGE plpgsql
 AS 
@@ -230,7 +231,7 @@ $function$;
 create trigger extrato_apos_delete after delete on finance.extrato for each row execute function finance.fn_apos_delete_mov();  
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------   
-CREATE OR REPLACE FUNCTION finance.fn_apos_update_mov()
+CREATE OR REPLACE FUNCTION finance.fn_apos_update_mov()		-- testar
 	RETURNS trigger
 	LANGUAGE plpgsql
 AS 
