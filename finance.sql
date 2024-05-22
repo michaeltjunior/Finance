@@ -104,9 +104,9 @@ where conta||'-'||seq = (select conta||'-'||max(seq)
 	- resgate
 */
 					
-create trigger extrato_apos_insere after insert on finance.extrato for each row execute function finance.fn_apos_insere_mov();  
-    
-CREATE OR REPLACE FUNCTION finance.fn_apos_insere_mov()
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------   
+CREATE OR REPLACE FUNCTION finance.fn_antes_insere_mov()
 	RETURNS trigger
 	LANGUAGE plpgsql
 AS 
@@ -115,7 +115,7 @@ DECLARE
 	cursorSaldos CURSOR FOR SELECT seq, saldo, saldo_aplicacao 
 							from finance.vw_extrato e 
 							where conta = new.conta 
-							and seq = (select max(seq) from finance.vw_extrato ee where ee.conta = e.conta and situacao = new.situacao);
+							and seq = (select max(seq) from finance.vw_extrato ee where ee.conta = e.conta and situacao = 'Realizado' and data < new.data);
 	nSeq 		integer;
 	nSaldo 		numeric;
 	nSaldoApl 	numeric;
@@ -123,17 +123,14 @@ DECLARE
 
 	x 			RECORD;
 begin
-	nNovaSeq = new.seq;
-
-	/* calcular o novo saldo atual após inserir movimento (previsto ou realizado) */
-
-	/*  EM DESENVOLVIMENTO */
-
+	/* PREVER MOVIMENTAÇÃO DE APLICAÇÃO FINANCEIRA */
     OPEN cursorSaldos;
     FETCH cursorSaldos INTO nSeq, nSaldo, nSaldoApl;
     
     IF FOUND THEN
-		update finance.extrato set saldo = nSaldo + new.credito - abs(new.debito) where seq = nNovaSeq;
+		new.saldo = nSaldo + new.credito - abs(new.debito);
+	else
+		new.saldo = 0;
     END IF;
     
     CLOSE cursorSaldos;
@@ -141,24 +138,53 @@ begin
     RETURN NEW;
 END;
 $function$;
+--
+create trigger extrato_antes_insere before insert on finance.extrato for each row execute function finance.fn_antes_insere_mov();  
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------   
+CREATE OR REPLACE FUNCTION finance.fn_apos_insere_mov()
+	RETURNS trigger
+	LANGUAGE plpgsql
+AS 
+$function$
+begin
+	/* PREVER MOVIMENTAÇÃO DE APLICAÇÃO FINANCEIRA */
+	update finance.extrato set saldo = saldo + new.credito - abs(new.debito) where conta = new.conta and data > new.data;
+
+    RETURN NEW;
+END;
+$function$;
+--
+create trigger extrato_apos_insere after insert on finance.extrato for each row execute function finance.fn_apos_insere_mov();  
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------   
+CREATE OR REPLACE FUNCTION finance.fn_apos_delete_mov()
+	RETURNS trigger
+	LANGUAGE plpgsql
+AS 
+$function$
+begin
+	/* PREVER MOVIMENTAÇÃO DE APLICAÇÃO FINANCEIRA */
+	update finance.extrato set saldo = saldo - old.credito + abs(old.debito) where conta = old.conta and data > old.data;
+
+    RETURN OLD;
+END;
+$function$;
+--
+create trigger extrato_apos_delete after delete on finance.extrato for each row execute function finance.fn_apos_delete_mov();  
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------   
+    
 
 
-select * from finance.extrato where seq = 1531;
---delete from finance.extrato where seq = 1530;
+select * from finance.extrato where seq = 1532;
+--delete from finance.extrato where seq = 1532;
 
-
+-- INSERT DE TESTE
 insert into finance.extrato 
 (data, tipo, historico, credito, debito, categoria, situacao, periodo, conta) 
 values 
 (current_date, 'Cartão débito', 'Teste', 0, -10, 'Mercados', 'Realizado', '2024-05-01', 'Bradesco');
 
+select * from finance.vw_extrato where periodo = '2024-05-01';
 
-select * from finance.vw_extrato where conta = 'Bradesco' and periodo = '2024-05-01';
-SELECT seq, saldo, saldo_aplicacao from finance.vw_extrato e where conta = 'Bradesco' and seq = (select max(seq) from finance.vw_extrato ee where ee.conta = 'Bradesco' and situacao = 'Realizado');
-
-
-SELECT seq, saldo, saldo_aplicacao 
-							from finance.vw_extrato e 
-							where conta = 'Bradesco'
-							and seq = (select max(seq) from finance.vw_extrato ee where ee.conta = e.conta and situacao = 'Realizado')							
-							
