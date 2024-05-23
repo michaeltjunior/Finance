@@ -249,47 +249,43 @@ CREATE OR REPLACE FUNCTION finance.fn_apos_update_mov()		-- testar
 AS 
 $function$
 declare 
+	cursorUltimaData cursor for select max(data) as ultimaData from finance.extrato e where conta = new.conta and data < new.data;
+	dUltimaData date;
 	x record;
-	nSaldoAntigo numeric;
-	cursorUltimaSeq cursor for select coalesce(max(seq_dia), 0) + 1 from finance.extrato e where conta = new.conta and data = new.data;
-	nSeqDia integer;
+	ultimoSaldo numeric;
 begin
-	/*
-	nSaldoAntigo = -999999;
-
-	open cursorUltimaSeq;
-	fetch cursorUltimaSeq into nSeqDia;
-	close cursorUltimaSeq;
-
 	if (new.situacao <> old.situacao) then 
-		/* mudou a situação - registro foi efetivado */
-		/* regra: registro já efetivado não pode ser alterado para previsto novamente (deve ser excluído e programado de novo neste caso) */
-		for x in select seq , data, conta , saldo from finance.vw_extrato e where e.conta = new.conta and data > new.data loop 
-			if(nSaldoAntigo = -999999) then 
-				nSaldoAntigo = new.saldo;
-			end if;			
+		/* PREVER MOVIMENTAÇÃO DE APLICAÇÃO FINANCEIRA */
 		
-			update finance.extrato set saldo = nSaldoAntigo + new.credito - abs(new.debito) where seq = x.seq;
-			nSaldoAntigo = nSaldoAntigo + new.credito - abs(new.debito);
-		end loop;				
+		ultimoSaldo = -9999999;
 		
+		open cursorUltimaData;
+		fetch cursorUltimaData into dUltimaData;
+		close cursorUltimaData;
+	
+		for x in select * from finance.vw_extrato ve where data >= dUltimaData and conta = new.conta loop 
+			if (ultimoSaldo = -9999999) then 
+				ultimoSaldo = x.saldo;
+			else 
+				update finance.extrato set saldo = ultimoSaldo + x.credito - abs(x.debito) where seq = x.seq;
+				ultimoSaldo = ultimoSaldo + x.credito - abs(x.debito);
+			end if;
+		end loop;
+	
 		update finance.extrato set seq_dia = nSeqDia where seq = new.seq;
 	end if;
-
-	
-	*/
 
     RETURN NEW;
 END;
 $function$;
 --
-create trigger extrato_apos_update after update on finance.extrato for each row execute function finance.fn_apos_update_mov();  
+create trigger extrato_apos_update after update on finance.extrato for each row execute function finance.fn_apos_update_mov();
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------   
 
 
 select * from finance.extrato where seq = 1532;
---delete from finance.extrato where seq = 1545;
+--delete from finance.extrato where seq = 1547;
 
 -- INSERT DE TESTE
 insert into finance.extrato 
@@ -302,7 +298,7 @@ insert into finance.extrato
 values 
 ('2024-05-31', 'Saque', 'Dentista Igor', 0, -90, 'Saúde', 'Previsto', '2024-05-01', 'Bradesco');
 
-update finance.extrato set situacao = 'Realizado' , data ='2024-05-21' where seq = 1544;
+update finance.extrato set situacao = 'Realizado' , data ='2024-05-21' where seq = 1547;
 
 select * from finance.vw_extrato where periodo = '2024-05-01' and conta = 'Inter';
 select * from finance.vw_extrato where periodo = '2024-05-01' and conta = 'Bradesco';
