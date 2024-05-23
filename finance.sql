@@ -129,15 +129,7 @@ where conta||'-'||seq = (select conta||'-'||max(seq)
 							group by conta);
 
 /*
- EFETIVAR UM MOVIMENTO PREVISTO
- ------------------------------------------------
-	 1) localizar o movimento a efetivar
-	 2) confirmar a data da efetivação
-	 3) copiar todo o registro PREVISTO para a memória
-	 4) DELETER o registro previsto
-	 5) INSERIR o registro previsto agora como REALIZADO na data correta
-	 6) recalcular o saldo A PARTIR DO DIA SEGUINTE ao do movimento efetivado, levando em conta o crédito ou o débito agora efetivado, SOMENTE NA CONTA AFETADA
-  
+ 
 ***   CRIAR PROCESSO PARA ADMINISTRAÇÃO DAS APLICAÇÕES FINANCEIRAS (tela à parte) ***
 	- aporte
 	- rendimento
@@ -195,29 +187,6 @@ $function$;
 create trigger extrato_antes_insere before insert on finance.extrato for each row execute function finance.fn_antes_insere_mov();  
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------   
-CREATE OR REPLACE FUNCTION finance.fn_apos_insere_mov()	-- testar
-	RETURNS trigger
-	LANGUAGE plpgsql
-AS 
-$function$
-declare 
-	x record;
-begin
-	/* PREVER MOVIMENTAÇÃO DE APLICAÇÃO FINANCEIRA */
-	
-	for x in select seq , data, conta from finance.vw_extrato e where e.conta = new.conta and data > new.data loop 
-		update finance.extrato set saldo = saldo + new.credito - abs(new.debito) where seq = x.seq;
-	end loop;				
-
---	update finance.extrato set saldo = saldo + new.credito - abs(new.debito) where conta = new.conta and data > new.data;
-
-    RETURN NEW;
-END;
-$function$;
---
-create trigger extrato_apos_insere after insert on finance.extrato for each row execute function finance.fn_apos_insere_mov();  
-------------------------------------------------------------------------------------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------------------------------------------------------------------------------------   
 CREATE OR REPLACE FUNCTION finance.fn_apos_delete_mov()		-- OK - validada
 	RETURNS trigger
 	LANGUAGE plpgsql
@@ -253,6 +222,27 @@ $function$;
 create trigger extrato_apos_delete after delete on finance.extrato for each row execute function finance.fn_apos_delete_mov();  
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------   
+CREATE OR REPLACE FUNCTION finance.fn_apos_insere_mov()	-- OK - validada
+	RETURNS trigger
+	LANGUAGE plpgsql
+AS 
+$function$
+declare 
+	x record;
+begin
+	/* PREVER MOVIMENTAÇÃO DE APLICAÇÃO FINANCEIRA */
+	
+	for x in select seq , data, conta from finance.vw_extrato e where e.conta = new.conta and data > new.data loop 
+		update finance.extrato set saldo = saldo + new.credito - abs(new.debito) where seq = x.seq;
+	end loop;				
+
+    RETURN NEW;
+END;
+$function$;
+--
+create trigger extrato_apos_insere after insert on finance.extrato for each row execute function finance.fn_apos_insere_mov();  
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------   
 CREATE OR REPLACE FUNCTION finance.fn_apos_update_mov()		-- testar
 	RETURNS trigger
 	LANGUAGE plpgsql
@@ -282,9 +272,11 @@ begin
 			update finance.extrato set saldo = nSaldoAntigo + new.credito - abs(new.debito) where seq = x.seq;
 			nSaldoAntigo = nSaldoAntigo + new.credito - abs(new.debito);
 		end loop;				
+		
+		update finance.extrato set seq_dia = nSeqDia where seq = new.seq;
 	end if;
 
-	update finance.extrato set seq_dia = nSeqDia where seq = new.seq;
+	
 	*/
 
     RETURN NEW;
@@ -297,7 +289,7 @@ create trigger extrato_apos_update after update on finance.extrato for each row 
 
 
 select * from finance.extrato where seq = 1532;
---delete from finance.extrato where seq = 1544;
+--delete from finance.extrato where seq = 1545;
 
 -- INSERT DE TESTE
 insert into finance.extrato 
