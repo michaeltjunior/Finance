@@ -264,7 +264,9 @@ declare
 	cursorUltimaSeq cursor for select coalesce(max(seq_dia), 0) + 1 from finance.extrato e where conta = new.conta and data = new.data;
 	nSeqDia integer;
 begin
+	/*
 	nSaldoAntigo = -999999;
+
 	open cursorUltimaSeq;
 	fetch cursorUltimaSeq into nSeqDia;
 	close cursorUltimaSeq;
@@ -283,6 +285,7 @@ begin
 	end if;
 
 	update finance.extrato set seq_dia = nSeqDia where seq = new.seq;
+	*/
 
     RETURN NEW;
 END;
