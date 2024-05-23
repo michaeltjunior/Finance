@@ -249,11 +249,6 @@ begin
 		end if;
 	end loop;
 
-	
---	for x in select seq , data, conta from finance.vw_extrato e where e.conta = new.conta and data > new.data loop 
---		update finance.extrato set saldo = saldo + new.credito - abs(new.debito) where seq = x.seq;
---	end loop;				
-
     RETURN NEW;
 END;
 $function$;
@@ -316,10 +311,6 @@ $function$;
 create trigger extrato_apos_update after update on finance.extrato for each row execute function finance.fn_apos_update_mov();
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------   
-
-
-select * from finance.extrato where seq = 1532;
---delete from finance.extrato where seq = 1550;
 
 -- 
 insert into finance.extrato 
