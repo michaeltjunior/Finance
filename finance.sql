@@ -254,9 +254,8 @@ declare
 	x record;
 	ultimoSaldo numeric;
 begin
-	if (new.situacao <> old.situacao) then 
-		/* PREVER MOVIMENTAÇÃO DE APLICAÇÃO FINANCEIRA */
-		
+	/* PREVER MOVIMENTAÇÃO DE APLICAÇÃO FINANCEIRA */
+	if ((new.situacao <> old.situacao) or (new.saldo <> old.saldo)) then 
 		ultimoSaldo = -9999999;
 		
 		open cursorUltimaData;
@@ -271,13 +270,18 @@ begin
 				ultimoSaldo = ultimoSaldo + x.credito - abs(x.debito);
 			end if;
 		end loop;
-	
-		update finance.extrato set seq_dia = nSeqDia where seq = new.seq;
 	end if;
 
     RETURN NEW;
 END;
 $function$;
+
+
+select max(data) as ultimaData from finance.extrato e where conta = 'Bradesco' and data < '2024-05-21';
+select * from finance.vw_extrato ve where data >= '2024-05-20' and conta = 'Bradesco';
+
+
+
 --
 create trigger extrato_apos_update after update on finance.extrato for each row execute function finance.fn_apos_update_mov();
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -285,7 +289,7 @@ create trigger extrato_apos_update after update on finance.extrato for each row 
 
 
 select * from finance.extrato where seq = 1532;
---delete from finance.extrato where seq = 1547;
+--delete from finance.extrato where seq = 1550;
 
 -- INSERT DE TESTE
 insert into finance.extrato 
@@ -298,7 +302,8 @@ insert into finance.extrato
 values 
 ('2024-05-31', 'Saque', 'Dentista Igor', 0, -90, 'Saúde', 'Previsto', '2024-05-01', 'Bradesco');
 
-update finance.extrato set situacao = 'Realizado' , data ='2024-05-21' where seq = 1547;
+update finance.extrato set situacao = 'Realizado' , data ='2024-05-21' where seq = 1551;
+--update finance.extrato set saldo = 999999 where seq = 1551;
 
 select * from finance.vw_extrato where periodo = '2024-05-01' and conta = 'Inter';
 select * from finance.vw_extrato where periodo = '2024-05-01' and conta = 'Bradesco';
