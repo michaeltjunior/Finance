@@ -167,12 +167,14 @@ DECLARE
 	x 			RECORD;
 	nSeqDia		integer;
 begin
-	/* obter a sequencia do dia */
-	open cursorSeqDia;
-	fetch cursorSeqDia into nSeqDia;
-	close cursorSeqDia;
-
-	new.seq_dia = nSeqDia;
+	if (new.situacao = 'Realizado') then
+		/* obter a sequencia do dia */
+		open cursorSeqDia;
+		fetch cursorSeqDia into nSeqDia;
+		close cursorSeqDia;
+	
+		new.seq_dia = nSeqDia;
+	end if;
 
 	/* PREVER MOVIMENTAÇÃO DE APLICAÇÃO FINANCEIRA */
     OPEN cursorSaldos;
@@ -200,9 +202,12 @@ AS
 $function$
 declare 
 	x record;
+	nSeqDia integer;
 begin
 	/* PREVER MOVIMENTAÇÃO DE APLICAÇÃO FINANCEIRA */
-	for x in select seq , data, conta from finance.vw_extrato e where e.conta = new.conta and data > new.data loop 
+	nSeqDia = new.seq_dia;
+	
+	for x in select seq , data, conta from finance.vw_extrato e where e.conta = new.conta and data >= new.data loop 
 		update finance.extrato set saldo = saldo + new.credito - abs(new.debito) where seq = x.seq;
 	end loop;				
 
@@ -215,14 +220,33 @@ $function$;
 create trigger extrato_apos_insere after insert on finance.extrato for each row execute function finance.fn_apos_insere_mov();  
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------   
-CREATE OR REPLACE FUNCTION finance.fn_apos_delete_mov()		-- refazer
+CREATE OR REPLACE FUNCTION finance.fn_apos_delete_mov()		-- OK - validada
 	RETURNS trigger
 	LANGUAGE plpgsql
 AS 
 $function$
+declare
+	cursorUltimaData cursor for select max(data) as ultimaData from finance.extrato e where conta = old.conta and data < old.data;
+	dUltimaData date;
+	x record;
+	ultimoSaldo numeric;
 begin
 	/* PREVER MOVIMENTAÇÃO DE APLICAÇÃO FINANCEIRA */
-	update finance.extrato set saldo = saldo - old.credito + abs(old.debito) where conta = old.conta and data > old.data;
+	
+	ultimoSaldo = -9999999;
+	
+	open cursorUltimaData;
+	fetch cursorUltimaData into dUltimaData;
+	close cursorUltimaData;
+
+	for x in select * from finance.vw_extrato ve where data >= dUltimaData and conta = old.conta loop 
+		if (ultimoSaldo = -9999999) then 
+			ultimoSaldo = x.saldo;
+		else 
+			update finance.extrato set saldo = ultimoSaldo + x.credito - abs(x.debito) where seq = x.seq;
+			ultimoSaldo = ultimoSaldo + x.credito - abs(x.debito);
+		end if;
+	end loop;
 
     RETURN OLD;
 END;
@@ -266,7 +290,7 @@ create trigger extrato_apos_update after update on finance.extrato for each row 
 
 
 select * from finance.extrato where seq = 1532;
---delete from finance.extrato where seq = 1541;
+--delete from finance.extrato where seq = 1542;
 
 -- INSERT DE TESTE
 insert into finance.extrato 
