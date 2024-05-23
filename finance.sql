@@ -261,8 +261,13 @@ $function$
 declare 
 	x record;
 	nSaldoAntigo numeric;
+	cursorUltimaSeq cursor for select coalesce(max(seq_dia), 0) + 1 from finance.extrato e where conta = new.conta and data = new.data;
+	nSeqDia integer;
 begin
 	nSaldoAntigo = -999999;
+	open cursorUltimaSeq;
+	fetch cursorUltimaSeq into nSeqDia;
+	close cursorUltimaSeq;
 
 	if (new.situacao <> old.situacao) then 
 		/* mudou a situação - registro foi efetivado */
@@ -277,6 +282,8 @@ begin
 		end loop;				
 	end if;
 
+	update finance.extrato set seq_dia = nSeqDia where seq = new.seq;
+
     RETURN NEW;
 END;
 $function$;
@@ -287,7 +294,7 @@ create trigger extrato_apos_update after update on finance.extrato for each row 
 
 
 select * from finance.extrato where seq = 1532;
---delete from finance.extrato where seq = 1543;
+--delete from finance.extrato where seq = 1544;
 
 -- INSERT DE TESTE
 insert into finance.extrato 
@@ -300,13 +307,13 @@ insert into finance.extrato
 values 
 ('2024-05-31', 'Saque', 'Dentista Igor', 0, -90, 'Saúde', 'Previsto', '2024-05-01', 'Bradesco');
 
-update finance.extrato set situacao = 'Realizado' , data ='2024-05-21' where seq = 1542;
+update finance.extrato set situacao = 'Realizado' , data ='2024-05-21' where seq = 1544;
 
 select * from finance.vw_extrato where periodo = '2024-05-01' and conta = 'Inter';
 select * from finance.vw_extrato where periodo = '2024-05-01' and conta = 'Bradesco';
 select * from finance.vw_extrato where periodo = '2024-06-01' and conta = 'Bradesco';
 select * from finance.vw_extrato where conta = 'Inter';
-select * from finance.vw_extrato where conta = 'Bradesco';
+select * from finance.vw_extrato where conta = 'Bradesco' and data >= '2024-05-20';
 
 
 /* RECUPERAÇÃO DOS SALDOS EM CASO DE PERDA DE INTEGRIDADE */
