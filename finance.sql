@@ -20,7 +20,7 @@ CREATE TABLE finance.extrato (
 );
 CREATE INDEX extrato_ix1 ON finance.extrato USING btree (conta);
 CREATE INDEX extrato_ix2 ON finance.extrato USING btree (data);
-CREATE INDEX extrato_ix3 ON finance.extrato USING btree (situacao);
+CREATE INDEX extrato_ix3 ON finance.extrato USING btree (seq_dia);
 
 create table finance.tipos
 (seq integer default nextval('finance.seq_tipos'::regclass),
@@ -104,7 +104,6 @@ select * from finance.categorias;
 
 CREATE INDEX extrato_ix1 ON finance.extrato (conta);
 CREATE INDEX extrato_ix2 ON finance.extrato (data);
-CREATE INDEX extrato_ix3 ON finance.extrato (situacao);
 
 /* saldos atuais das contas */
 select conta, saldo, saldo_aplicacao from finance.extrato e where seq = (select max(seq) from finance.extrato ee where ee.conta = e.conta and situacao = 'Realizado');
@@ -148,7 +147,7 @@ DECLARE
 	cursorSaldos CURSOR FOR SELECT seq, saldo, saldo_aplicacao 
 							from finance.vw_extrato e 
 							where conta = new.conta 
-							and seq = (select max(seq) from finance.vw_extrato ee where ee.conta = e.conta /*and situacao = 'Realizado'*/ and data = new.data);
+							and seq = (select max(seq) from finance.vw_extrato ee where ee.conta = e.conta and data = new.data);
 	nSeq 		integer;
 	nSaldo 		numeric;
 	nSaldoApl 	numeric;
@@ -243,7 +242,7 @@ $function$;
 create trigger extrato_apos_insere after insert on finance.extrato for each row execute function finance.fn_apos_insere_mov();  
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------   
-CREATE OR REPLACE FUNCTION finance.fn_apos_update_mov()		-- testar
+CREATE OR REPLACE FUNCTION finance.fn_apos_update_mov()		-- OK - validada
 	RETURNS trigger
 	LANGUAGE plpgsql
 AS 
