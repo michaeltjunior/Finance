@@ -202,12 +202,10 @@ AS
 $function$
 declare 
 	x record;
-	nSeqDia integer;
 begin
 	/* PREVER MOVIMENTAÇÃO DE APLICAÇÃO FINANCEIRA */
-	nSeqDia = new.seq_dia;
 	
-	for x in select seq , data, conta from finance.vw_extrato e where e.conta = new.conta and data >= new.data loop 
+	for x in select seq , data, conta from finance.vw_extrato e where e.conta = new.conta and data > new.data loop 
 		update finance.extrato set saldo = saldo + new.credito - abs(new.debito) where seq = x.seq;
 	end loop;				
 
@@ -277,7 +275,6 @@ begin
 			update finance.extrato set saldo = nSaldoAntigo + new.credito - abs(new.debito) where seq = x.seq;
 			nSaldoAntigo = nSaldoAntigo + new.credito - abs(new.debito);
 		end loop;				
-		--update finance.extrato set saldo = saldo + new.credito - abs(new.debito) where conta = new.conta and data > new.data;
 	end if;
 
     RETURN NEW;
@@ -290,7 +287,7 @@ create trigger extrato_apos_update after update on finance.extrato for each row 
 
 
 select * from finance.extrato where seq = 1532;
---delete from finance.extrato where seq = 1542;
+--delete from finance.extrato where seq = 1543;
 
 -- INSERT DE TESTE
 insert into finance.extrato 
@@ -307,6 +304,7 @@ update finance.extrato set situacao = 'Realizado' , data ='2024-05-21' where seq
 
 select * from finance.vw_extrato where periodo = '2024-05-01' and conta = 'Inter';
 select * from finance.vw_extrato where periodo = '2024-05-01' and conta = 'Bradesco';
+select * from finance.vw_extrato where periodo = '2024-06-01' and conta = 'Bradesco';
 select * from finance.vw_extrato where conta = 'Inter';
 select * from finance.vw_extrato where conta = 'Bradesco';
 
