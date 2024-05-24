@@ -16,6 +16,7 @@ CREATE TABLE finance.extrato (
 	conta varchar(100) NOT NULL,
 	saldo_aplicacao numeric NULL,
 	seq_dia integer,
+	tipo_conta text,
 	CONSTRAINT extrato_pkey PRIMARY KEY (seq, conta)
 );
 CREATE INDEX extrato_ix1 ON finance.extrato USING btree (conta);
@@ -128,15 +129,6 @@ where conta||'-'||seq = (select conta||'-'||max(seq)
 							and to_char(date_trunc('month', e.data),'MM/YYYY' ) = to_char(date_trunc('month', ee.data),'MM/YYYY' )
 							group by conta);
 
-/*
- 
-***   CRIAR PROCESSO PARA ADMINISTRAÇÃO DAS APLICAÇÕES FINANCEIRAS (tela à parte) ***
-	- aporte
-	- rendimento
-	- estorno de rendimento
-	- resgate
-*/
-					
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------   
 CREATE OR REPLACE FUNCTION finance.fn_antes_insere_mov()
@@ -326,6 +318,25 @@ select * from finance.vw_extrato where periodo = '2024-06-01' and conta = 'Brade
 select * from finance.vw_extrato where conta = 'Inter';
 select * from finance.vw_extrato where conta = 'Bradesco' and data >= '2024-05-20';
 
+insert into finance.extrato
+(data, tipo, historico, credito, debito, saldo, categoria, situacao, periodo, conta, saldo_aplicacao, seq_dia, tipo_conta)
+values
+('2024-01-01', 'SALDO ANTERIOR', 'SALDO ANTERIOR', 0, 0, 0, 'Saldo anterior', 'Realizado', '2024-05-01', 'APL CDI Inter', 0, 1, 'Aplicação');
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------   
+
+/*
+ Situações possíveis para aplicações:
+ 
+ 1) Aporte a partir da conta corrente (transferência entre contas - pode haver mais de uma aplicação, deve ser escolhido o destino)
+ 2) Resgate para a conta corrente (transferência entre contas - escolher a aplicação de origem e a conta de destino)
+ 3) Apuração de rendimentos (não afeta a conta corrente - valor é creditado apenas na aplicação)
+ 4) Estorno de rendimentos (mesmo que apuração de rendimentos, mas com valor negativo, discriminado no histórico)
+ 
+ */
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------------------------------------   
 
 /* RECUPERAÇÃO DOS SALDOS EM CASO DE PERDA DE INTEGRIDADE */
 do
@@ -383,60 +394,61 @@ language plpgsql;
 /*   TESTES   */
 /*
 insert into finance.extrato
-(data, tipo, historico, credito, debito, saldo, categoria, situacao, periodo, conta, saldo_aplicacao, seq_dia)
+(data, tipo, historico, credito, debito, saldo, categoria, situacao, periodo, conta, saldo_aplicacao, seq_dia, tipo_conta)
 values
-('2024-05-01', 'SALDO ANTERIOR', 'SALDO ANTERIOR', 0, 0, 1000, 'Saldo anterior', 'Realizado', '2024-05-01', 'TESTE', 0, 1);
+('2024-05-01', 'SALDO ANTERIOR', 'SALDO ANTERIOR', 0, 0, 1000, 'Saldo anterior', 'Realizado', '2024-05-01', 'TESTE', 0, 1, 'Conta corrente');
 
 insert into finance.extrato 
-(data, tipo, historico, credito, debito, categoria, situacao, periodo, conta) 
+(data, tipo, historico, credito, debito, categoria, situacao, periodo, conta, tipo_conta) 
 values 
-('2024-05-23', 'Saque', 'Saque teste', 0, -10, 'Outras despesas', 'Realizado', '2024-05-01', 'TESTE');
+('2024-05-23', 'Saque', 'Saque teste', 0, -10, 'Outras despesas', 'Realizado', '2024-05-01', 'TESTE', 'Conta corrente');
 
 insert into finance.extrato 
-(data, tipo, historico, credito, debito, categoria, situacao, periodo, conta) 
+(data, tipo, historico, credito, debito, categoria, situacao, periodo, conta, tipo_conta) 
 values 
-('2024-05-23', 'Depósito', 'Depósito teste', 100, 0, 'Outras receitas', 'Realizado', '2024-05-01', 'TESTE');
+('2024-05-23', 'Depósito', 'Depósito teste', 100, 0, 'Outras receitas', 'Realizado', '2024-05-01', 'TESTE', 'Conta corrente');
 
 insert into finance.extrato 
-(data, tipo, historico, credito, debito, categoria, situacao, periodo, conta) 
+(data, tipo, historico, credito, debito, categoria, situacao, periodo, conta, tipo_conta) 
 values 
-('2024-05-24', 'Cartão débito', 'Débito teste', 0, -20, 'Outras despesas', 'Previsto', '2024-05-01', 'TESTE');
+('2024-05-24', 'Cartão débito', 'Débito teste', 0, -20, 'Outras despesas', 'Previsto', '2024-05-01', 'TESTE', 'Conta corrente');
 
 insert into finance.extrato 
-(data, tipo, historico, credito, debito, categoria, situacao, periodo, conta) 
+(data, tipo, historico, credito, debito, categoria, situacao, periodo, conta, tipo_conta) 
 values 
-('2024-05-31', 'Cartão débito', 'Débito teste 2', 0, -50, 'Outras despesas', 'Previsto', '2024-05-01', 'TESTE');
+('2024-05-31', 'Cartão débito', 'Débito teste 2', 0, -50, 'Outras despesas', 'Previsto', '2024-05-01', 'TESTE', 'Conta corrente');
 
 insert into finance.extrato 
-(data, tipo, historico, credito, debito, categoria, situacao, periodo, conta) 
+(data, tipo, historico, credito, debito, categoria, situacao, periodo, conta, tipo_conta) 
 values 
-('2024-05-31', 'Cartão crédito', 'Crédito teste', 0, -30, 'Cartão crédito', 'Previsto', '2024-05-01', 'TESTE');
+('2024-05-31', 'Cartão crédito', 'Crédito teste', 0, -30, 'Cartão crédito', 'Previsto', '2024-05-01', 'TESTE', 'Conta corrente');
 
 update finance.extrato set data = '2024-05-24', situacao = 'Realizado' where seq = 1624;
 
 insert into finance.extrato 
-(data, tipo, historico, credito, debito, categoria, situacao, periodo, conta) 
+(data, tipo, historico, credito, debito, categoria, situacao, periodo, conta, tipo_conta) 
 values 
-(current_date, 'Depósito', 'Depósito teste', 100, 0, 'Outras receitas', 'Realizado', '2024-05-01', 'TESTE');
+(current_date, 'Depósito', 'Depósito teste', 100, 0, 'Outras receitas', 'Realizado', '2024-05-01', 'TESTE', 'Conta corrente');
 
 insert into finance.extrato 
-(data, tipo, historico, credito, debito, categoria, situacao, periodo, conta) 
+(data, tipo, historico, credito, debito, categoria, situacao, periodo, conta, tipo_conta) 
 values 
-(current_date, 'Cartão débito', 'Débito teste - troca de valor', 0, -5, 'Outras despesas', 'Previsto', '2024-05-01', 'TESTE');
+(current_date, 'Cartão débito', 'Débito teste - troca de valor', 0, -5, 'Outras despesas', 'Previsto', '2024-05-01', 'TESTE', 'Conta corrente');
 
 insert into finance.extrato 
-(data, tipo, historico, credito, debito, categoria, situacao, periodo, conta) 
+(data, tipo, historico, credito, debito, categoria, situacao, periodo, conta, tipo_conta) 
 values 
-(current_date, 'Pagamento cobrança', 'Cobrança teste', 0, -10, 'Outras despesas', 'Previsto', '2024-05-01', 'TESTE');
+(current_date, 'Pagamento cobrança', 'Cobrança teste', 0, -10, 'Outras despesas', 'Previsto', '2024-05-01', 'TESTE', 'Conta corrente');
 
 --delete from finance.extrato where conta = 'TESTE' and seq = 1617;
 update finance.extrato set situacao = 'Realizado' , debito = -10 where seq = 1628;
 update finance.extrato set historico = 'Novo valor - movimento 1628' where seq = 1628;
 
 insert into finance.extrato 
-(data, tipo, historico, credito, debito, categoria, situacao, periodo, conta) 
+(data, tipo, historico, credito, debito, categoria, situacao, periodo, conta, tipo_conta) 
 values 
-('2024-05-23', 'Pagamento cobrança', 'Movimento retroativo', 0, -12, 'Outras despesas', 'Realizado', '2024-05-01', 'TESTE');
+('2024-05-23', 'Pagamento cobrança', 'Movimento retroativo', 0, -12, 'Outras despesas', 'Realizado', '2024-05-01', 'TESTE', 'Conta corrente');
 
 select * from finance.vw_extrato ve where conta = 'TESTE';
 */
+
