@@ -449,6 +449,6 @@ insert into finance.extrato
 values 
 ('2024-05-23', 'Pagamento cobrança', 'Movimento retroativo', 0, -12, 'Outras despesas', 'Realizado', '2024-05-01', 'TESTE', 'Conta corrente');
 
-select * from finance.vw_extrato ve where conta = 'TESTE';
+select * from finance.vw_extrato ve where conta = 'APL CDI Inter';
 */
 
