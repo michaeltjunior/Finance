@@ -278,12 +278,12 @@ begin
 		close cursorUltimaData;
 	
 		for x in select * from finance.vw_extrato ve where data >= dUltimaData and conta = new.conta loop 
-			raise notice 'ultimo saldo = %', ultimoSaldo;
-			raise notice 'seq = %', x.seq;
-			raise notice 'saldo = %', x.saldo;
-			raise notice 'situacao = %', x.situacao;
-			raise notice 'situacao nova = %', new.situacao;
-			raise notice '---------------------------';
+--			raise notice 'ultimo saldo = %', ultimoSaldo;
+--			raise notice 'seq = %', x.seq;
+--			raise notice 'saldo = %', x.saldo;
+--			raise notice 'situacao = %', x.situacao;
+--			raise notice 'situacao nova = %', new.situacao;
+--			raise notice '---------------------------';
 		
 			if (ultimoSaldo = -9999999) then 
 				ultimoSaldo = x.saldo;
@@ -380,11 +380,11 @@ end;
 $$
 language plpgsql;
 
-/*
+/*   TESTES   */
 insert into finance.extrato
 (data, tipo, historico, credito, debito, saldo, categoria, situacao, periodo, conta, saldo_aplicacao, seq_dia)
 values
-(current_date, 'SALDO ANTERIOR', 'SALDO ANTERIOR', 0, 0, 1000, 'Saldo anterior', 'Realizado', '2024-05-01', 'TESTE', 0, 1);
+('2024-05-01', 'SALDO ANTERIOR', 'SALDO ANTERIOR', 0, 0, 1000, 'Saldo anterior', 'Realizado', '2024-05-01', 'TESTE', 0, 1);
 
 insert into finance.extrato 
 (data, tipo, historico, credito, debito, categoria, situacao, periodo, conta) 
@@ -411,8 +411,25 @@ insert into finance.extrato
 values 
 ('2024-05-31', 'Cartão crédito', 'Crédito teste', 0, -30, 'Cartão crédito', 'Previsto', '2024-05-01', 'TESTE');
 
-update finance.extrato set data = '2024-05-24', situacao = 'Realizado' where seq = 1617;
+update finance.extrato set data = '2024-05-24', situacao = 'Realizado' where seq = 1624;
 
-delete from finance.extrato where conta = 'TESTE' and seq = 1617;
+insert into finance.extrato 
+(data, tipo, historico, credito, debito, categoria, situacao, periodo, conta) 
+values 
+(current_date, 'Depósito', 'Depósito teste', 100, 0, 'Outras receitas', 'Realizado', '2024-05-01', 'TESTE');
+
+insert into finance.extrato 
+(data, tipo, historico, credito, debito, categoria, situacao, periodo, conta) 
+values 
+(current_date, 'Cartão débito', 'Débito teste - troca de valor', 0, -5, 'Outras despesas', 'Previsto', '2024-05-01', 'TESTE');
+
+insert into finance.extrato 
+(data, tipo, historico, credito, debito, categoria, situacao, periodo, conta) 
+values 
+(current_date, 'Pagamento cobrança', 'Cobrança teste', 0, -10, 'Outras despesas', 'Previsto', '2024-05-01', 'TESTE');
+
+--delete from finance.extrato where conta = 'TESTE' and seq = 1617;
 select * from finance.vw_extrato ve where conta = 'TESTE';
-*/
+
+update finance.extrato set situacao = 'Realizado' , debito = -10 where seq = 1628;
+update finance.extrato set historico = 'Novo valor - movimento 1628' where seq = 1628;
