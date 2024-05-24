@@ -139,7 +139,7 @@ where conta||'-'||seq = (select conta||'-'||max(seq)
 					
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------   
-CREATE OR REPLACE FUNCTION finance.fn_antes_insere_mov()	-- OK - validada
+CREATE OR REPLACE FUNCTION finance.fn_antes_insere_mov()
 	RETURNS trigger
 	LANGUAGE plpgsql
 AS 
@@ -187,7 +187,7 @@ $function$;
 create trigger extrato_antes_insere before insert on finance.extrato for each row execute function finance.fn_antes_insere_mov();  
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------   
-CREATE OR REPLACE FUNCTION finance.fn_apos_delete_mov()		-- OK - validada
+CREATE OR REPLACE FUNCTION finance.fn_apos_delete_mov()
 	RETURNS trigger
 	LANGUAGE plpgsql
 AS 
@@ -222,7 +222,7 @@ $function$;
 create trigger extrato_apos_delete after delete on finance.extrato for each row execute function finance.fn_apos_delete_mov();  
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------   
-CREATE OR REPLACE FUNCTION finance.fn_apos_insere_mov()		-- testar
+CREATE OR REPLACE FUNCTION finance.fn_apos_insere_mov()
 	RETURNS trigger
 	LANGUAGE plpgsql
 AS 
@@ -256,7 +256,7 @@ $function$;
 create trigger extrato_apos_insere after insert on finance.extrato for each row execute function finance.fn_apos_insere_mov();  
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------   
-CREATE OR REPLACE FUNCTION finance.fn_apos_update_mov()		-- OK - validada
+CREATE OR REPLACE FUNCTION finance.fn_apos_update_mov()
 	RETURNS trigger
 	LANGUAGE plpgsql
 AS 
@@ -381,6 +381,7 @@ $$
 language plpgsql;
 
 /*   TESTES   */
+/*
 insert into finance.extrato
 (data, tipo, historico, credito, debito, saldo, categoria, situacao, periodo, conta, saldo_aplicacao, seq_dia)
 values
@@ -429,7 +430,13 @@ values
 (current_date, 'Pagamento cobrança', 'Cobrança teste', 0, -10, 'Outras despesas', 'Previsto', '2024-05-01', 'TESTE');
 
 --delete from finance.extrato where conta = 'TESTE' and seq = 1617;
-select * from finance.vw_extrato ve where conta = 'TESTE';
-
 update finance.extrato set situacao = 'Realizado' , debito = -10 where seq = 1628;
 update finance.extrato set historico = 'Novo valor - movimento 1628' where seq = 1628;
+
+insert into finance.extrato 
+(data, tipo, historico, credito, debito, categoria, situacao, periodo, conta) 
+values 
+('2024-05-23', 'Pagamento cobrança', 'Movimento retroativo', 0, -12, 'Outras despesas', 'Realizado', '2024-05-01', 'TESTE');
+
+select * from finance.vw_extrato ve where conta = 'TESTE';
+*/
