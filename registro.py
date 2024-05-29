@@ -1,4 +1,5 @@
 from datetime import datetime
+import requests
 import streamlit as st
 
 st.set_page_config(layout="centered")   # ou "wide"
@@ -43,3 +44,6 @@ st.button('Salvar', on_click=botao_salvar)
 if(not st.session_state['mensagem'] == ''):
     st.success(' Registro salvo', icon="✅")
     st.session_state['mensagem'] = ''
+
+data = requests.get("'https://intelliseven.com.br/meteo/cidades'").json()
+st.write(data)
