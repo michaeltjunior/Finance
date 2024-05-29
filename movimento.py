@@ -22,7 +22,6 @@ with st.form("formulario"):
     historico = st.text_area("Descrição", height=1, key="historico")
     valor = st.number_input("Valor R$", key="valor")
     categoria = st.selectbox("Categoria", ["Selecione", "Mercados","Alimentação", "Saúde", "Casa", "Aplicação", "(-) Transferência", "(+) Transferência"], key="categoria")
-
     
     coluna3, coluna4, coluna5, coluna6, coluna7 = st.columns([0.2, 0.2, 0.2, 0.2, 0.2])
     submitted = st.form_submit_button("Salvar", on_click=clear_form)
