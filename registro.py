@@ -45,5 +45,5 @@ if(not st.session_state['mensagem'] == ''):
     st.success(' Registro salvo', icon="✅")
     st.session_state['mensagem'] = ''
 
-data = requests.get("'https://intelliseven.com.br/meteo/cidades'").json()
+data = requests.get("'https://intelliseven.com.br/meteo/cidades/'")
 st.write(data)
