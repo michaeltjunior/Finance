@@ -24,6 +24,10 @@ def botao_salvar():
     st.session_state['tipo'] = 'Selecione'
     st.session_state['categoria'] = 'Selecione'
 
+#def carrega_listas():
+#    tipos = requests.get("https://intelliseven.com.br/meteo/fin_tipos").json()
+#    categorias = requests.get("https://intelliseven.com.br/meteo/fin_categorias").json()
+    
 coluna1, coluna2 = st.columns([0.45, 0.55])
 coluna1.title("| Movimentação ")
 tipoEscolhido = ""

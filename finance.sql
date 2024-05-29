@@ -31,7 +31,7 @@ create table finance.categorias
 (seq integer default nextval('finance.seq_categorias'::regclass),
 categoria text);
 
-create or replace view finance.vw_extrato as select * from finance.extrato order by conta, data, situacao desc, seq;
+--create or replace view finance.vw_extrato as select * from finance.extrato order by conta, data, situacao desc, seq;
 
 grant all on finance.vw_extrato to public;
 grant all on finance.tipos to public;
