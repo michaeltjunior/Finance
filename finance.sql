@@ -1,6 +1,7 @@
 create sequence finance.seq_extrato;
 create sequence finance.seq_tipos;
 create sequence finance.seq_categorias;
+create sequence finance.seq_contas;
 
 CREATE TABLE finance.extrato (
 	"data" date NULL,
@@ -23,35 +24,46 @@ CREATE INDEX extrato_ix1 ON finance.extrato USING btree (conta);
 CREATE INDEX extrato_ix2 ON finance.extrato USING btree (data);
 CREATE INDEX extrato_ix3 ON finance.extrato USING btree (seq_dia);
 
+create table finance.contas
+(seq integer default nextval('finance.seq_contas'::regclass),
+conta text,
+banco text,
+tipo text);
+
 create table finance.tipos
 (seq integer default nextval('finance.seq_tipos'::regclass),
 tipo text);
 
 create table finance.categorias
 (seq integer default nextval('finance.seq_categorias'::regclass),
-categoria text);
+.categoria text);
 
 --create or replace view finance.vw_extrato as select * from finance.extrato order by conta, data, situacao desc, seq;
 
 grant all on finance.vw_extrato to public;
 grant all on finance.tipos to public;
 grant all on finance.categorias to public;
+grant all on finance.contas to public;
 
-insert into tipos (tipo) values ('Aplicação');
-insert into tipos (tipo) values ('Cartão crédito');
-insert into tipos (tipo) values ('Cartão débito');
-insert into tipos (tipo) values ('Conta consumo');
-insert into tipos (tipo) values ('Débito aplicativo');
-insert into tipos (tipo) values ('Depósito');
-insert into tipos (tipo) values ('Pagamento cobrança');
-insert into tipos (tipo) values ('Pagamento tributos');
-insert into tipos (tipo) values ('Pague fácil');
-insert into tipos (tipo) values ('Pix qr Code');
-insert into tipos (tipo) values ('Saque');
-insert into tipos (tipo) values ('Tarifa bancária');
-insert into tipos (tipo) values ('TED');
-insert into tipos (tipo) values ('Transferência PIX');
-insert into tipos (tipo) values ('SALDO ANTERIOR');
+insert into finance.contas (conta, banco, tipo) values ('Bradesco', 'Bradesco', 'Conta corrente');
+insert into finance.contas (conta, banco, tipo) values ('Inter', 'Inter', 'Conta corrente');
+insert into finance.contas (conta, banco, tipo) values ('APL CDI Inter', 'Inter', 'Aplicação');
+
+insert into finance.tipos (tipo) values ('Aplicação');
+insert into finance.tipos (tipo) values ('Cartão crédito');
+insert into finance.tipos (tipo) values ('Cartão débito');
+insert into finance.tipos (tipo) values ('Conta consumo');
+insert into finance.tipos (tipo) values ('Débito aplicativo');
+insert into finance.tipos (tipo) values ('Depósito');
+insert into finance.tipos (tipo) values ('Pagamento cobrança');
+insert into finance.tipos (tipo) values ('Pagamento tributos');
+insert into finance.tipos (tipo) values ('Pague fácil');
+insert into finance.tipos (tipo) values ('Pix qr Code');
+insert into finance.tipos (tipo) values ('Saque');
+insert into finance.tipos (tipo) values ('Tarifa bancária');
+insert into finance.tipos (tipo) values ('TED');
+insert into finance.tipos (tipo) values ('Transferência PIX');
+insert into finance.tipos (tipo) values ('SALDO ANTERIOR');
 
 insert into finance.categorias (categoria) values ('(-) Transferência');
 insert into finance.categorias (categoria) values ('(+) Transferência');
