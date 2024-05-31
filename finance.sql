@@ -120,7 +120,11 @@ CREATE INDEX extrato_ix1 ON finance.extrato (conta);
 CREATE INDEX extrato_ix2 ON finance.extrato (data);
 
 /* saldos atuais das contas */
-select conta, saldo, saldo_aplicacao from finance.extrato e where seq = (select max(seq) from finance.extrato ee where ee.conta = e.conta and situacao = 'Realizado');
+create or replace view finance.vw_resumo
+as
+select conta, saldo from finance.vw_extrato e where seq = (select max(seq) from finance.extrato ee where ee.conta = e.conta and situacao = 'Realizado');
+
+grant all on finance.vw_resumo to public;
 
 /* previsão para o mês corrente, a partir da última posição efetivada e dos movimentos já previstos */
 select conta, sum(saldo) saldo_atual, sum(saldo_aplicacao) saldo_aplicacao, sum(saldo) + sum(saldo_aplicacao) as saldo_total,
@@ -463,4 +467,3 @@ values
 
 select * from finance.vw_extrato ve where conta = 'APL CDI Inter';
 */
-
