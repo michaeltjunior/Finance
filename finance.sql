@@ -467,3 +467,5 @@ values
 
 select * from finance.vw_extrato ve where conta = 'APL CDI Inter';
 */
+
+-- teste
