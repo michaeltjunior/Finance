@@ -938,4 +938,3 @@ values
 
 select * from finance.vw_extrato ve where conta = 'APL CDI Inter';
 */
->>>>>>> b18841649159ac07d28e1737493784492421a7f0
