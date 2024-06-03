@@ -69,11 +69,13 @@ insert into finance.tipos (tipo) values ('SALDO ANTERIOR');
 insert into finance.categorias (categoria) values ('(-) Transferência');
 insert into finance.categorias (categoria) values ('(+) Transferência');
 insert into finance.categorias (categoria) values ('Alimentação');
+insert into finance.categorias (categoria) values ('Aplicação');
 insert into finance.categorias (categoria) values ('Cantina Igor');
 insert into finance.categorias (categoria) values ('Cartão de crédito');
 insert into finance.categorias (categoria) values ('Casa');
 insert into finance.categorias (categoria) values ('Celular');
 insert into finance.categorias (categoria) values ('Combustível');
+insert into finance.categorias (categoria) values ('Condomínio');
 insert into finance.categorias (categoria) values ('Cursos');
 insert into finance.categorias (categoria) values ('Escola');
 insert into finance.categorias (categoria) values ('Estacionamento');
@@ -168,26 +170,27 @@ DECLARE
 	x 			RECORD;
 	nSeqDia		integer;
 begin
-	if (new.situacao = 'Realizado') then
-		/* obter a sequencia do dia */
-		open cursorSeqDia;
-		fetch cursorSeqDia into nSeqDia;
-		close cursorSeqDia;
+	if(upper(new.historico) != 'SALDO ANTERIOR') then
+		if (new.situacao = 'Realizado') then
+			/* obter a sequencia do dia */
+			open cursorSeqDia;
+			fetch cursorSeqDia into nSeqDia;
+			close cursorSeqDia;
+		
+			new.seq_dia = nSeqDia;
+		end if;
 	
-		new.seq_dia = nSeqDia;
-	end if;
-
-	/* PREVER MOVIMENTAÇÃO DE APLICAÇÃO FINANCEIRA */
-    OPEN cursorSaldos;
-    FETCH cursorSaldos INTO nSeq, nSaldo, nSaldoApl;
+	    OPEN cursorSaldos;
+	    FETCH cursorSaldos INTO nSeq, nSaldo, nSaldoApl;
+		    
+	    IF FOUND THEN
+			new.saldo = nSaldo + new.credito - abs(new.debito);
+		else
+			new.saldo = 0;
+	    END IF;
 	    
-    IF FOUND THEN
-		new.saldo = nSaldo + new.credito - abs(new.debito);
-	else
-		new.saldo = 0;
-    END IF;
-    
-    CLOSE cursorSaldos;
+	    CLOSE cursorSaldos;
+    end if;
 
     RETURN NEW;
 END;
@@ -207,8 +210,6 @@ declare
 	x record;
 	ultimoSaldo numeric;
 begin
-	/* PREVER MOVIMENTAÇÃO DE APLICAÇÃO FINANCEIRA */
-	
 	ultimoSaldo = -9999999;
 	
 	open cursorUltimaData;
@@ -242,7 +243,6 @@ declare
 	ultimoSaldo numeric;
 	x record;
 begin
-	/* PREVER MOVIMENTAÇÃO DE APLICAÇÃO FINANCEIRA */
 	ultimoSaldo = -9999999;
 		
 	open cursorUltimaData;
@@ -278,7 +278,6 @@ declare
 	cursorSeqDia cursor for select coalesce(max(seq_dia), 0)+1 as seq_dia from finance.extrato e where conta = new.conta and data = new.data;
 	nSeqDia integer;
 begin
-	/* PREVER MOVIMENTAÇÃO DE APLICAÇÃO FINANCEIRA */
 	if ((new.situacao <> old.situacao) or (new.saldo <> old.saldo)) then 
 		ultimoSaldo = -9999999;
 		
