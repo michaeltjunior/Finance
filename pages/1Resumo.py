@@ -43,7 +43,7 @@ def busca_resumo():
         with col:
             total = total + float(resumo['saldo'])
             #with st.popover(resumo['conta']):
-            st.markdown("**:resumo['conta']**")
+            st.markdown("**:"+resumo['conta']+"**")
             #st.write(resumo['conta'])
             st.write('R$ {:,.2f}'.format(float(resumo['saldo'])))
 
