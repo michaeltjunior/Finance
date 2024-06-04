@@ -51,6 +51,26 @@ def busca_resumo():
 
 def busca_dia():
     st.title("| Para hoje")
+    resultado = 0
+    paraHoje = json.loads(json.dumps(requests.get("https://intelliseven.com.br/meteo/finance/hoje").json()))
+
+    for hoje in paraHoje:
+        conta = hoje['conta']
+        credito = hoje['credito']
+        debito = hoje['debito']
+    
+        colunas_hoje = st.columns(4)
+
+        resultado = resultado + float(hoje['credito']) + float(hoje['debito'])
+
+        with colunas_hoje[0]:
+            st.markdown("**"+conta+"**")
+
+        with colunas_hoje[1]:
+            st.write('R$ {:,.2f}'.format(float(hoje['credito'])))
+
+        with colunas_hoje[2]:
+            st.write('R$ {:,.2f}'.format(float(hoje['debito'])))
 
 st.title("| Resumo")
 st.divider()
