@@ -92,6 +92,8 @@ def busca_dia():
         with colunas_hoje[3]:
             st.write('R$ {:,.2f}'.format(st.session_state['sld'] + resultado))
 
+        resultado = 0
+
 st.title("| Resumo")
 
 busca_resumo()
