@@ -596,6 +596,20 @@ select conta, saldo from finance.vw_extrato e where seq = (select max(seq) from 
 
 grant all on finance.vw_resumo to public;
 
+/* movimentação do dia */
+create view finance.vw_dia 
+as
+ SELECT conta,
+    sum(debito) AS debito,
+    sum(credito) AS credito
+   FROM finance.vw_extrato
+  WHERE vw_extrato.data = current_date
+  and situacao = 'Previsto'
+  GROUP BY conta
+  ORDER BY conta;
+ 
+ grant all on finance.vw_dia to public;
+
 /* previsão para o mês corrente, a partir da última posição efetivada e dos movimentos já previstos */
 select conta, sum(saldo) saldo_atual, sum(saldo_aplicacao) saldo_aplicacao, sum(saldo) + sum(saldo_aplicacao) as saldo_total,
 		sum(credito) as entradas, sum(debito) as saidas, 
@@ -937,3 +951,5 @@ values
 
 select * from finance.vw_extrato ve where conta = 'APL CDI Inter';
 */
+
+select * from finance.vw_extrato where conta = 'Inter';
