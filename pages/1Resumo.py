@@ -39,11 +39,12 @@ def busca_resumo():
 
     for resumo in resumoContas:        
         col = layout_colunas[numero_colunas]
+        conta = resumo['conta']
     
         with col:
             total = total + float(resumo['saldo'])
             #with st.popover(resumo['conta']):
-            st.markdown("**:"+resumo['conta']+"**")
+            st.markdown("**"+conta+"**")
             #st.write(resumo['conta'])
             st.write('R$ {:,.2f}'.format(float(resumo['saldo'])))
 
