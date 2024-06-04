@@ -73,7 +73,6 @@ def busca_dia():
             st.write('R$ {:,.2f}'.format(float(hoje['debito'])))
 
 st.title("| Resumo")
-st.divider()
 
 busca_resumo()
 st.divider()
