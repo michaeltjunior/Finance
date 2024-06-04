@@ -4,4 +4,4 @@ from image_loader import render_image
 
 menu()
 
-render_image(".\pages\logo.jpg")
+render_image("..\pages\logo.jpg")
