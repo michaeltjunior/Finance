@@ -5,6 +5,15 @@ import requests
 
 st.set_page_config(layout="centered")   # ou "wide"
 
+margins_css = """
+    <style>
+        .main > div {
+            padding-top: 1rem;            
+        }        
+    </style>
+"""
+st.markdown(margins_css, unsafe_allow_html=True)        
+
 lista_contas = ["Selecione"]
 
 def mostra_conta(dados):
