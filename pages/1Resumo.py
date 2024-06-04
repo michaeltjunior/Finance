@@ -7,7 +7,7 @@ st.set_page_config(layout="centered")   # ou "wide"
 
 margins_css = """
     <style>
-        .main > div {
+        .div {
             padding-top: 1rem;            
         }        
     </style>
