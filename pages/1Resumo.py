@@ -16,7 +16,7 @@ margins_css = """
         }
     </style>
 """
-st.markdown(margins_css, unsafe_allow_html=True)        
+#st.markdown(margins_css, unsafe_allow_html=True)        
 
 lista_contas = ["Selecione"]
 
