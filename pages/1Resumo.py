@@ -90,7 +90,7 @@ def busca_dia():
             st.write('R$ {:,.2f}'.format(float(hoje['debito'])))
 
         with colunas_hoje[3]:
-            st.write('R$ {:,.2f}'.format(st.session_state['sld']))
+            st.write('R$ {:,.2f}'.format(st.session_state['sld'] + resultado))
 
 st.title("| Resumo")
 
