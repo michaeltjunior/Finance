@@ -6,7 +6,7 @@ import requests
 st.set_page_config(layout="centered")   # ou "wide"
 
 if 'saldoConta' not in st.session_state:
-    st.session_state['saldoConta'] = 0
+    st.session_state['saldoConta'] = 0.00
 
 margins_css = """
     <style>
@@ -53,11 +53,11 @@ def busca_resumo():
         st.markdown("**"+'Saldo total: ' + 'R$ {:,.2f}'.format(total)+"**")
 
 def saldo_dia_conta(contaSaldo):
-    valorSaldo = 0
+    valorSaldo = 0.00
     saldoConta = json.loads(json.dumps(requests.get("https://intelliseven.com.br/meteo/finance/resumo").json()))
     for saldo in saldoConta:
         if(saldoConta['conta'] == contaSaldo):
-            valorSaldo = saldoConta['saldo']
+            valorSaldo = float(saldoConta['saldo'])
             st.session_state['saldoConta'] = valorSaldo
 
 def busca_dia():
@@ -90,7 +90,7 @@ def busca_dia():
             st.write('R$ {:,.2f}'.format(float(hoje['debito'])))
 
         with colunas_hoje[3]:
-            st.write('R$ {:,.2f}'.format(float(st.session_state['saldoConta'])))
+            st.write('R$ {:,.2f}'.format(st.session_state['saldoConta']))
 
 st.title("| Resumo")
 
