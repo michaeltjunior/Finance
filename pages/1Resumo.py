@@ -34,8 +34,9 @@ def busca_resumo():
         numero_colunas = numero_colunas + 1
 
     layout_colunas = st.columns(numero_colunas)
-
     numero_colunas = 0
+
+    st.divider()
 
     for resumo in resumoContas:        
         col = layout_colunas[numero_colunas]
@@ -50,6 +51,7 @@ def busca_resumo():
 
         numero_colunas = numero_colunas + 1
         
+    st.divider()
     #with st.columns(3)[1]:
     st.subheader('Saldo total: ' + 'R$ {:,.2f}'.format(total))
 
