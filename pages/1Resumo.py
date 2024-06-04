@@ -54,13 +54,16 @@ def busca_dia():
     resultado = 0
     paraHoje = json.loads(json.dumps(requests.get("https://intelliseven.com.br/meteo/finance/hoje").json()))
 
+    colunas_hoje = st.columns(4)
+
+    colunas_hoje[1] = 'Entradas'
+    colunas_hoje[2] = 'Saídas'
+
     for hoje in paraHoje:
         conta = hoje['conta']
         credito = hoje['credito']
         debito = hoje['debito']
     
-        colunas_hoje = st.columns(4)
-
         resultado = resultado + float(hoje['credito']) + float(hoje['debito'])
 
         with colunas_hoje[0]:
