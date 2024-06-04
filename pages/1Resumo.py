@@ -5,19 +5,6 @@ import requests
 
 st.set_page_config(layout="centered")   # ou "wide"
 
-margins_css = """
-    <style>
-        .main > div {
-            padding-top: 1rem;            
-        }
-        
-        .stTextArea textarea {
-            height: 1px;
-        }
-    </style>
-"""
-#st.markdown(margins_css, unsafe_allow_html=True)        
-
 lista_contas = ["Selecione"]
 
 def mostra_conta(dados):
@@ -43,9 +30,7 @@ def busca_resumo():
     
         with col:
             total = total + float(resumo['saldo'])
-            #with st.popover(resumo['conta']):
             st.markdown("**"+conta+"**")
-            #st.write(resumo['conta'])
             st.write('R$ {:,.2f}'.format(float(resumo['saldo'])))
 
         numero_colunas = numero_colunas + 1
