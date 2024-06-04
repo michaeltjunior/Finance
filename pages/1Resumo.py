@@ -41,6 +41,7 @@ def busca_resumo():
         col = layout_colunas[numero_colunas]
         conta = resumo['conta']
     
+        st.markdown("<br/>")
         with col:
             total = total + float(resumo['saldo'])
             #with st.popover(resumo['conta']):
