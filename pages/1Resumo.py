@@ -51,7 +51,7 @@ def busca_resumo():
         numero_colunas = numero_colunas + 1
         
     with st.columns(3)[1]:
-        st.header('Saldo total: ' + 'R$ {:,.2f}'.format(total))
+        st.subheader('Saldo total: ' + 'R$ {:,.2f}'.format(total))
 
 st.title("| Resumo")
 
