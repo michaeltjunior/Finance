@@ -56,7 +56,7 @@ def saldo_dia_conta(contaSaldo):
     valorSaldo = 0.00
     saldoConta = json.loads(json.dumps(requests.get("https://intelliseven.com.br/meteo/finance/resumo").json()))
     for saldo in saldoConta:
-        if(saldoConta['conta'] == contaSaldo):
+        if(saldoConta['conta'] == saldo['conta']):
             valorSaldo = float(saldoConta['saldo'])
             st.session_state['sld'] = valorSaldo
 
