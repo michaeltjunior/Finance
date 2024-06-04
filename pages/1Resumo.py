@@ -18,7 +18,6 @@ margins_css = """
 """
 st.markdown(margins_css, unsafe_allow_html=True)        
 
-#menu()
 lista_contas = ["Selecione"]
 
 def mostra_conta(dados):
@@ -50,14 +49,6 @@ def busca_resumo():
         
     with st.columns(3)[1]:
         st.write('Saldo total: ' + 'R$ {:,.2f}'.format(total))
-
-    #df = pd.DataFrame(resumoContas)
-    #
-    #df.loc[len(df)] = ["Total", total]    
-    #df = df.astype({"saldo": float})
-    #df["saldo"] = df["saldo"].map("R$ {:,.2f}".format)
-
-    #df
 
 st.title("| Resumo")
 

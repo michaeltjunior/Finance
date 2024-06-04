@@ -1,7 +1,7 @@
+import streamlit as st
 from datetime import datetime
 import json
 import requests
-import streamlit as st
 
 st.set_page_config(layout="centered")   # ou "wide"
 
@@ -17,6 +17,7 @@ margins_css = """
     </style>
 """
 st.markdown(margins_css, unsafe_allow_html=True)        
+
 lista_contas = ["Selecione"]
 lista_tipos_contas = ["Selecione"]
 lista_tipos_movimento = ["Selecione"]
