@@ -5,6 +5,8 @@ import requests
 
 st.set_page_config(layout="centered")   # ou "wide"
 
+saldos_dia = []
+
 margins_css = """
     <style>
         .div {
@@ -36,6 +38,7 @@ def busca_resumo():
     for resumo in resumoContas:        
         col = layout_colunas[numero_colunas]
         conta = resumo['conta']
+        saldos_dia[resumo['conta']] = resumo['saldo']
     
         with col:
             total = total + float(resumo['saldo'])
