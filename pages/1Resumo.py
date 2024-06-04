@@ -22,7 +22,6 @@ def busca_resumo():
 
     layout_colunas = st.columns(numero_colunas)
     numero_colunas = 0
-    
 
     for resumo in resumoContas:        
         col = layout_colunas[numero_colunas]
@@ -39,6 +38,11 @@ def busca_resumo():
     #with st.columns(3)[1]:
     st.subheader('Saldo total: ' + 'R$ {:,.2f}'.format(total))
 
+def busca_dia():
+    st.title("| Para hoje")
+
 st.title("| Resumo")
 st.divider()
 busca_resumo()
+st.divider()
+busca_dia()
