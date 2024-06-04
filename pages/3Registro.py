@@ -2,10 +2,8 @@ from datetime import datetime
 import json
 import requests
 import streamlit as st
-from menu import menu
 
 st.set_page_config(layout="centered")   # ou "wide"
-menu()
 
 margins_css = """
     <style>

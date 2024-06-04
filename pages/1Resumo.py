@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-from menu import menu
 import json
 import requests
 
@@ -19,7 +18,7 @@ margins_css = """
 """
 st.markdown(margins_css, unsafe_allow_html=True)        
 
-menu()
+#menu()
 lista_contas = ["Selecione"]
 
 def mostra_conta(dados):
