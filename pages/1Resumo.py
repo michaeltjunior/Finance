@@ -56,9 +56,10 @@ def busca_dia():
 
     colunas_hoje = st.columns(4)
 
-    colunas_hoje[0].write(' ')
+    colunas_hoje[0].write('Conta')
     colunas_hoje[1].write('Entradas')
     colunas_hoje[2].write('Saídas')
+    colunas_hoje[3].write('Saldo dia')
 
     for hoje in paraHoje:
         conta = hoje['conta']
