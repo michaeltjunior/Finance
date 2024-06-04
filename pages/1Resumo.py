@@ -5,8 +5,8 @@ import requests
 
 st.set_page_config(layout="centered")   # ou "wide"
 
-if 'saldoConta' not in st.session_state:
-    st.session_state['saldoConta'] = 0.00
+if 'sld' not in st.session_state:
+    st.session_state['sld'] = 0.00
 
 margins_css = """
     <style>
@@ -58,7 +58,7 @@ def saldo_dia_conta(contaSaldo):
     for saldo in saldoConta:
         if(saldoConta['conta'] == contaSaldo):
             valorSaldo = float(saldoConta['saldo'])
-            st.session_state['saldoConta'] = valorSaldo
+            st.session_state['sld'] = valorSaldo
 
 def busca_dia():
     st.title("| Para hoje")
@@ -90,7 +90,7 @@ def busca_dia():
             st.write('R$ {:,.2f}'.format(float(hoje['debito'])))
 
         with colunas_hoje[3]:
-            st.write('R$ {:,.2f}'.format(st.session_state['saldoConta']))
+            st.write('R$ {:,.2f}'.format(st.session_state['sld']))
 
 st.title("| Resumo")
 
