@@ -37,8 +37,7 @@ def busca_resumo():
     st.divider()
 
     with st.columns(3)[1]:
-        st.markdown("**Saldo total: R$ {:,.2f}'.format("+str(total)+")**")
-        #st.write('Saldo total: ' + 'R$ {:,.2f}'.format(total))
+        st.write('Saldo total: ' + 'R$ {:,.2f}'.format(total))
 
 def busca_dia():
     st.title("| Para hoje")
