@@ -5,4 +5,4 @@ from menu import menu
 menu()
 
 #render_image(".\logo.jpg")
-st.image('logo2.jpg')
+st.image('.\logo2.jpg')
