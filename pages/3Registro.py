@@ -1,5 +1,5 @@
 import streamlit as st
-from datetime import datetime
+from datetime import date, datetime
 import json
 import requests
 
@@ -26,7 +26,32 @@ lista_categorias = ["Selecione"]
 if 'mensagem' not in st.session_state:
     st.session_state['mensagem'] = ''
 
-def botao_salvar():
+if 'valorCredito' not in st.session_state:
+    st.session_state['valorCredito'] = 0
+
+if 'valorDebito' not in st.session_state:
+    st.session_state['valorDebito'] = 0
+
+#if 'periodo' not in st.session_state:
+#    st.session_state['periodo'] = date(datetime.now().year, datetime.now().month, 1)
+
+def botao_salvar():    
+    valorCredito = 0
+    valorDebito = 0
+
+    if(st.session_state.valor < 0):
+        valorCredito = 0
+        valorDebito = st.session_state.valor
+
+    if(st.session_state.valor >= 0):
+        valorDebito = 0
+        valorCredito = st.session_state.valor
+
+    url = 'https://intelliseven.com.br/meteo/finance/registro'
+    objeto = {'data': st.session_state.datamovimento.strftime("%Y-%m-%d") , 'conta': st.session_state.conta, 'tipo': st.session_state.tipo, 'historico': st.session_state.historico, 'categoria': st.session_state.categoria, 'credito': st.session_state.valorCredito, 'debito': st.session_state.valorDebito, 'situacao': st.session_state.situacao, 'periodo': date(st.session_state.datamovimento.year, st.session_state.datamovimento.month, 1).strftime("%Y-%m-%d"), 'tipo_conta': st.session_state.tipo_conta}
+    x = requests.post(url, json = json.dumps(objeto))
+
+    # limpar os campos após envio
     st.session_state['mensagem'] = 'registro salvo'
     st.session_state['historico'] = ''
     st.session_state['valor'] = 0
@@ -78,6 +103,7 @@ coluna1.title("| Movimentação ")
 tipoEscolhido = ""
 
 data = st.date_input("Data", key="datamovimento")
+
 conta = st.selectbox("Conta", st.session_state['contas'], key="conta")
 st.session_state['tipo_conta'] = lista_tipos_contas[st.session_state['contas'].index(conta)]
 
