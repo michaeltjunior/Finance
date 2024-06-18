@@ -32,9 +32,6 @@ if 'valorCredito' not in st.session_state:
 if 'valorDebito' not in st.session_state:
     st.session_state['valorDebito'] = 0
 
-#if 'periodo' not in st.session_state:
-#    st.session_state['periodo'] = date(datetime.now().year, datetime.now().month, 1)
-
 #def botao_teste():
 #    url = 'https://intelliseven.com.br/meteo/teste/add'
 #    objeto = {'coluna1': 'AA', 'coluna2': 'BB', 'coluna3': 'CC'}
@@ -52,13 +49,14 @@ def botao_salvar():
         valorDebito = 0
         valorCredito = st.session_state.valor
 
-    url = 'https://intelliseven.com.br/meteo/finance/registro'
-    #objeto = {'data': st.session_state.datamovimento.strftime("%Y-%m-%d") , 'conta': st.session_state.conta, 'tipo': st.session_state.tipo, 'historico': st.session_state.historico, 'categoria': st.session_state.categoria, 'credito': st.session_state.valorCredito, 'debito': st.session_state.valorDebito, 'situacao': st.session_state.situacao, 'periodo': date(st.session_state.datamovimento.year, st.session_state.datamovimento.month, 1).strftime("%Y-%m-%d"), 'tipo_conta': st.session_state.tipo_conta}
-    objeto = {'data': '2024-04-01' , 'conta': 'Inter', 'tipo': 'Cartão débito', 'historico': 'TESTE', 'categoria': 'Tarifas bancárias', 'credito': 0, 'debito': -1, 'situacao': 'Previsto', 'periodo': '2024-06-01', 'tipo_conta': 'Conta corrente'}
-    #x = requests.post(url, json = json.dumps(objeto))
-    x = requests.post(url, json = objeto)
+    #url = 'https://intelliseven.com.br/meteo/finance/add'
+    #objeto = {"data": st.session_state.datamovimento.strftime("%Y-%m-%d") , "conta": st.session_state.conta, "tipo": st.session_state.tipo, "historico": st.session_state.historico, "categoria": st.session_state.categoria, "credito": st.session_state.valorCredito, "debito": st.session_state.valorDebito, "situacao": st.session_state.situacao, "periodo": date(st.session_state.datamovimento.year, st.session_state.datamovimento.month, 1).strftime("%Y-%m-%d"), "tipo_conta": st.session_state.tipo_conta}
+    #x = requests.post(url, json=objeto)
 
-    st.write(x)
+    x = requests.post("https://intelliseven.com.br/meteo/finance/add", 
+        data=json.dumps([{"data": st.session_state.datamovimento.strftime("%Y-%m-%d") , "conta": st.session_state.conta, "tipo": st.session_state.tipo, "historico": st.session_state.historico, "categoria": st.session_state.categoria, "credito": st.session_state.valorCredito, "debito": st.session_state.valorDebito, "situacao": st.session_state.situacao, "periodo": date(st.session_state.datamovimento.year, st.session_state.datamovimento.month, 1).strftime("%Y-%m-%d"), "tipo_conta": st.session_state.tipo_conta}]),
+        headers={"Content-Type": "application/json"},
+    )
 
     # limpar os campos após envio
     st.session_state['mensagem'] = 'registro salvo'
@@ -110,9 +108,9 @@ carrega_listas()
 coluna1, coluna2 = st.columns([0.45, 0.55])
 coluna1.title("| Movimentação ")
 tipoEscolhido = ""
-
+#
 data = st.date_input("Data", key="datamovimento")
-
+#
 conta = st.selectbox("Conta", st.session_state['contas'], key="conta")
 st.session_state['tipo_conta'] = lista_tipos_contas[st.session_state['contas'].index(conta)]
 
@@ -127,7 +125,6 @@ categoria = st.selectbox("Categoria", st.session_state['categorias'], key="categ
 situacao = st.selectbox("Situação", st.session_state['situacoes'], key="situacao")
 
 st.button('Salvar', on_click=botao_salvar)
-#st.button('Teste', on_click=botao_teste)
 
 if(not st.session_state['mensagem'] == ''):
     st.success(' Registro salvo', icon="✅")
