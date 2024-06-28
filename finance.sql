@@ -1,4 +1,20 @@
 <<<<<<< HEAD
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA finance TO intellisevencom;
+GRANT USAGE ON SCHEMA finance TO intellisevencom;
+GRANT ALL PRIVILEGES ON TABLE finance.extrato TO intellisevencom;
+GRANT ALL PRIVILEGES ON TABLE finance.contas TO intellisevencom;
+GRANT ALL PRIVILEGES ON TABLE finance.tipos TO intellisevencom;
+GRANT ALL PRIVILEGES ON TABLE finance.categorias TO intellisevencom;
+ALTER SCHEMA finance OWNER TO intellisevencom;
+
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA finance TO public;
+GRANT USAGE ON SCHEMA finance TO public;
+GRANT ALL PRIVILEGES ON TABLE finance.extrato TO public;
+GRANT ALL PRIVILEGES ON TABLE finance.contas TO public;
+GRANT ALL PRIVILEGES ON TABLE finance.tipos TO public;
+GRANT ALL PRIVILEGES ON TABLE finance.categorias TO public;
+ALTER SCHEMA finance OWNER TO public;
+
 create sequence finance.seq_extrato;
 create sequence finance.seq_tipos;
 create sequence finance.seq_categorias;

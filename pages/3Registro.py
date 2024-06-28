@@ -49,14 +49,14 @@ def botao_salvar():
         valorDebito = 0
         valorCredito = st.session_state.valor
 
-    #url = 'https://intelliseven.com.br/meteo/finance/add'
-    #objeto = {"data": st.session_state.datamovimento.strftime("%Y-%m-%d") , "conta": st.session_state.conta, "tipo": st.session_state.tipo, "historico": st.session_state.historico, "categoria": st.session_state.categoria, "credito": st.session_state.valorCredito, "debito": st.session_state.valorDebito, "situacao": st.session_state.situacao, "periodo": date(st.session_state.datamovimento.year, st.session_state.datamovimento.month, 1).strftime("%Y-%m-%d"), "tipo_conta": st.session_state.tipo_conta}
-    #x = requests.post(url, json=objeto)
+#    x = requests.post("https://intelliseven.com.br/meteo/finance/add", 
+#        data=json.dumps([{"data": st.session_state.datamovimento.strftime("%Y-%m-%d") , "conta": st.session_state.conta, "tipo": st.session_state.tipo, "historico": st.session_state.historico, "categoria": st.session_state.categoria, "credito": st.session_state.valorCredito, "debito": st.session_state.valorDebito, "situacao": st.session_state.situacao, "periodo": date(st.session_state.datamovimento.year, st.session_state.datamovimento.month, 1).strftime("%Y-%m-%d"), "tipo_conta": st.session_state.tipo_conta}]),
+#        headers={"Content-Type": "application/json"},
+#    )
 
-    x = requests.post("https://intelliseven.com.br/meteo/finance/add", 
-        data=json.dumps([{"data": st.session_state.datamovimento.strftime("%Y-%m-%d") , "conta": st.session_state.conta, "tipo": st.session_state.tipo, "historico": st.session_state.historico, "categoria": st.session_state.categoria, "credito": st.session_state.valorCredito, "debito": st.session_state.valorDebito, "situacao": st.session_state.situacao, "periodo": date(st.session_state.datamovimento.year, st.session_state.datamovimento.month, 1).strftime("%Y-%m-%d"), "tipo_conta": st.session_state.tipo_conta}]),
-        headers={"Content-Type": "application/json"},
-    )
+    urlteste = 'https://intelliseven.com.br/meteo/finance/teste/'
+    objetoteste = {'coluna1': 'AA', 'coluna2': 'BB'}
+    response = requests.post(urlteste, data = objetoteste)
 
     # limpar os campos após envio
     st.session_state['mensagem'] = 'registro salvo'
